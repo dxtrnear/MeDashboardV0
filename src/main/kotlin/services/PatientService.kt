@@ -25,7 +25,7 @@ class PatientService {
                     insomnia = Severity.MODERATE,
                     adhd = Severity.NONE
                 ),
-                remarks = "Patient shows signs of anxiety"
+                remarks = "Patient a des signes d'anxieté"
             )
         )
 

@@ -56,7 +56,7 @@ private fun TopAppBar() {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = "Welcome Dr. Kante!",
+            text = "Bienvenu Dr. Kante!",
             style = MaterialTheme.typography.h4
         )
 
@@ -92,14 +92,7 @@ private fun NavigationSidebar(
         ) {
             Text("Créer un patient")
         }
-        Button(
-            onClick = { /* TODO */ },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-        ) {
-            Text("Rédiger")
-        }
+
     }
 }
 
@@ -152,13 +145,13 @@ private fun StatisticsCard(statistics: Statistics) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                "Statistics",
+                "Statistiques",
                 style = MaterialTheme.typography.h6
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text("Total Patients: ${statistics.totalPatients}")
             Text("New Patients: ${statistics.newPatients}")
-            Text("Total Appointments: ${statistics.totalAppointments}")
+            Text("Total RDV: ${statistics.totalAppointments}")
         }
     }
 }

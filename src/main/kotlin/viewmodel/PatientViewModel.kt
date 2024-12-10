@@ -26,11 +26,11 @@ class PatientViewModel(private val patientService: PatientService) {
         patients = patientService.getPatients()
         appointments = patientService.getAppointments()
         statistics = patientService.getStatistics()
-        println("Data loaded: ${patients.size} patients") // Debug log
+        println("Nombre de patients: ${patients.size} patients") // Debug log
     }
 
     fun addPatient(patient: Patient) {
-        println("Adding patient: ${patient.name}") // Debug log
+        println("Ajout d'un patient: ${patient.name}") // Debug log
         patientService.addPatient(patient)
         loadData()
     }
