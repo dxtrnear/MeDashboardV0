@@ -2,17 +2,22 @@
 
 package ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import models.Patient
-import models.Appointment
-import models.Statistics
+import androidx.compose.ui.window.Dialog
+import models.*
+import ui.theme.*
 
 @Composable
-fun WelcomeScreen(
+fun welcomeScreen(
     onNavigateToPatientForm: () -> Unit,
     onNavigateToPatientList: () -> Unit,
     patients: List<Patient>,
@@ -20,170 +25,329 @@ fun WelcomeScreen(
     statistics: Statistics,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    var selectedPatient by remember { mutableStateOf<Patient?>(null) }
+
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(Background)
     ) {
-        TopAppBar()
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 16.dp)
+                .padding(16.dp)
         ) {
-            NavigationSidebar(
-                modifier = Modifier.width(240.dp),
-                onNavigateToPatientForm = onNavigateToPatientForm,
-                onNavigateToPatientList = onNavigateToPatientList
-            )
+            topBar()
 
-            DashboardContent(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp),
-                appointments = appointments,
-                statistics = statistics,
-                patients = patients
-            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(modifier = Modifier.fillMaxSize()) {
+                navigationSidebar(
+                    onNavigateToPatientForm = onNavigateToPatientForm,
+                    onNavigateToPatientList = onNavigateToPatientList,
+                    modifier = Modifier.width(240.dp)
+                )
+
+                Spacer(modifier = Modifier.width(24.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    statsSection(statistics)
+                    Spacer(modifier = Modifier.height(24.dp))
+                    appointmentsSection(appointments)
+                    Spacer(modifier = Modifier.height(24.dp))
+                    patientsSection(
+                        patients = patients,
+                        onPatientClick = { selectedPatient = it }
+                    )
+                }
+            }
+        }
+
+        selectedPatient?.let { patient ->
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .padding(16.dp),
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colors.surface,
+                ) {
+                    PatientDetails(
+                        patient = patient,
+                        onClose = { selectedPatient = null },
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun TopAppBar() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
+private fun topBar() {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Bienvenu Dr. Kante!",
-            style = MaterialTheme.typography.h4
+            text = "Bonjour, Dr. Kante",
+            style = MaterialTheme.typography.h4,
+            color = MaterialTheme.colors.primary
         )
-
-        OutlinedTextField(
-            value = "",
-            onValueChange = {},
-            placeholder = { Text("Search") },
-            modifier = Modifier.width(300.dp)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Bienvenue dans votre tableau de bord",
+            style = MaterialTheme.typography.body1,
+            color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
         )
     }
 }
 
 @Composable
-private fun NavigationSidebar(
-    modifier: Modifier = Modifier,
+private fun navigationSidebar(
     onNavigateToPatientForm: () -> Unit,
-    onNavigateToPatientList: () -> Unit
+    onNavigateToPatientList: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
         Button(
             onClick = onNavigateToPatientList,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = MaterialTheme.colors.primary,
+                contentColor = MaterialTheme.colors.onPrimary
+            ),
+            shape = RoundedCornerShape(8.dp)
         ) {
-            Text("Patients")
+            Text(
+                text = "Liste des Patients",
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         Button(
             onClick = onNavigateToPatientForm,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = MaterialTheme.colors.secondary,
+                contentColor = MaterialTheme.colors.onSecondary
+            ),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text(
+                text = "Nouveau Patient",
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun statsSection(statistics: Statistics) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = 2.dp,
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp)
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Text("Créer un patient")
+            statItem(
+                value = statistics.totalPatients.toString(),
+                label = "Total Patients"
+            )
+            statItem(
+                value = statistics.newPatients.toString(),
+                label = "Nouveaux Patients"
+            )
+            statItem(
+                value = statistics.totalAppointments.toString(),
+                label = "Rendez-vous"
+            )
         }
-
     }
 }
 
 @Composable
-private fun DashboardContent(
-    modifier: Modifier = Modifier,
-    appointments: List<Appointment>,
-    statistics: Statistics,
-    patients: List<Patient>
-) {
-    Column(modifier = modifier) {
-        AppointmentsCard(appointments)
-        Spacer(modifier = Modifier.height(16.dp))
-        StatisticsCard(statistics)
-        Spacer(modifier = Modifier.height(16.dp))
-        PatientHistoryCard(patients)
-    }
-}
-
-@Composable
-private fun AppointmentsCard(appointments: List<Appointment>) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = 4.dp
+private fun statItem(value: String, label: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    "Rendez-Vous",
-                    style = MaterialTheme.typography.h6
-                )
-                Text(appointments.size.toString())
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            appointments.take(3).forEach { appointment ->
-                AppointmentItem(appointment.patientName, appointment.dateTime)
-            }
-        }
+        Text(
+            text = value,
+            style = MaterialTheme.typography.h4,
+            color = MaterialTheme.colors.primary
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.body2,
+            color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+        )
     }
 }
 
 @Composable
-private fun StatisticsCard(statistics: Statistics) {
+private fun appointmentsSection(appointments: List<Appointment>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = 4.dp
+        elevation = 2.dp,
+        shape = RoundedCornerShape(12.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                "Statistiques",
-                style = MaterialTheme.typography.h6
+                "Rendez-vous d'aujourd'hui",
+                style = MaterialTheme.typography.h6,
+                color = MaterialTheme.colors.onSurface
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Total Patients: ${statistics.totalPatients}")
-            Text("New Patients: ${statistics.newPatients}")
-            Text("Total RDV: ${statistics.totalAppointments}")
-        }
-    }
-}
-
-@Composable
-private fun PatientHistoryCard(patients: List<Patient>) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = 4.dp
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                "Historique des Patients",
-                style = MaterialTheme.typography.h6
+                "${appointments.size} rendez-vous prévus",
+                style = MaterialTheme.typography.body2,
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            patients.take(4).forEach { patient ->
-                AppointmentItem(patient.name, patient.createdAt.toString())
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            appointments.forEachIndexed { index, appointment ->
+                appointmentItem(appointment)
+                if (index < appointments.size - 1) {
+                    Divider(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.1f)
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun AppointmentItem(name: String, datetime: String) {
+private fun appointmentItem(appointment: Appointment) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(name)
-        Text(datetime)
+        Column {
+            Text(
+                text = appointment.patientName,
+                style = MaterialTheme.typography.subtitle1,
+                color = MaterialTheme.colors.onSurface
+            )
+            Text(
+                text = appointment.dateTime,
+                style = MaterialTheme.typography.body2,
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+            )
+        }
+
+        Surface(
+            color = MaterialTheme.colors.primary.copy(alpha = 0.1f),
+            shape = RoundedCornerShape(4.dp)
+        ) {
+            Text(
+                text = "Prévu",
+                color = MaterialTheme.colors.primary,
+                style = MaterialTheme.typography.body2,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun patientsSection(
+    patients: List<Patient>,
+    onPatientClick: (Patient) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = 2.dp,
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                "Patients Récents",
+                style = MaterialTheme.typography.h6,
+                color = MaterialTheme.colors.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            patients.forEachIndexed { index, patient ->
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onPatientClick(patient) },
+                    color = MaterialTheme.colors.surface
+                ) {
+                    patientItem(patient)
+                }
+                if (index < patients.size - 1) {
+                    Divider(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.1f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun patientItem(patient: Patient) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
+            Text(
+                text = patient.name,
+                style = MaterialTheme.typography.subtitle1,
+                color = MaterialTheme.colors.onSurface
+            )
+            Text(
+                text = "Né(e) le ${patient.dateOfBirth}",
+                style = MaterialTheme.typography.body2,
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+            )
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (patient.medicalConditions.depression != Severity.NONE) {
+                conditionBadge("Dépressif", MaterialTheme.colors.error)
+            }
+            if (patient.medicalConditions.insomnia != Severity.NONE) {
+                conditionBadge("Insomniaque", MaterialTheme.colors.secondary)
+            }
+            if (patient.medicalConditions.adhd != Severity.NONE) {
+                conditionBadge("ADHD", MaterialTheme.colors.primary)
+            }
+        }
+    }
+}
+
+@Composable
+private fun conditionBadge(text: String, color: Color) {
+    Surface(
+        color = color.copy(alpha = 0.1f),
+        shape = RoundedCornerShape(4.dp)
+    ) {
+        Text(
+            text = text,
+            color = color,
+            style = MaterialTheme.typography.body2,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
     }
 }

@@ -18,7 +18,7 @@ fun main() = application {
 
         medashboardTheme {
             when (currentScreen) {
-                Screen.WELCOME -> WelcomeScreen(
+                Screen.WELCOME -> welcomeScreen(
                     onNavigateToPatientForm = { currentScreen = Screen.PATIENT_FORM },
                     onNavigateToPatientList = { currentScreen = Screen.PATIENT_LIST },
                     patients = viewModel.patients,
